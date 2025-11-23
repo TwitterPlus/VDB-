@@ -107,9 +107,15 @@ def generate_answer(question: str, results) -> str:
 
     context = "\n\n".join(docs)
 
-    prompt = f"""You are a helpful assistant for a retail store.
+    prompt = f"""You are a knowledgeable assistant grounded in the following internal reference text.
 Use ONLY the information in the CONTEXT section below to answer the QUESTION.
-If the answer is not clearly present in the context, say that you don't know based on the given policies.
+If the answer is not clearly present in the context, explicitly say that you don't know based on the given information.
+
+When you answer:
+- Be detailed and well-explained, not just a one-line response.
+- Clearly relate your answer back to the context (e.g., by paraphrasing the relevant parts).
+- If there are conditions, exceptions, or edge cases mentioned, include them.
+- Use bullet points or short paragraphs where it improves clarity.
 
 CONTEXT:
 {context}
@@ -117,7 +123,7 @@ CONTEXT:
 QUESTION:
 {question}
 
-Answer clearly and concisely.
+Provide a thorough, contextualized answer.
 """
 
     response = llm.generate_content(prompt)
