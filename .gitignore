@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment and secrets
+.env
+.env.*
+
+# Chroma vector database
+chroma_db/
+
+# Jupyter and VSCode artifacts
+.ipynb_checkpoints/
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
