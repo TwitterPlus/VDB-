@@ -1,121 +1,100 @@
 import os
+import uuid
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import chromadb
+from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
 import google.generativeai as genai
 import streamlit as st
-from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
-import uuid
 
 
-# -------------------------
-# Setup & configuration
-# -------------------------
-
-# Base directory (where this app.py lives)
 BASE_DIR = Path(__file__).resolve().parent
-
-# Load environment variables from .env in the project directory
-load_dotenv(BASE_DIR / ".env")
-
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY is not set in the environment. Please set it in your .env file.")
-
-# Configure Gemini
-genai.configure(api_key=GEMINI_API_KEY)
-LLM_MODEL_NAME = "gemini-2.5-flash"
-llm = genai.GenerativeModel(LLM_MODEL_NAME)
-
-# Create a persistent Chroma client (stored locally in 'chroma_db' under the project dir)
-chroma_client = chromadb.PersistentClient(path=str(BASE_DIR / "chroma_db"))
-
-COLLECTION_NAME = "policies"
-POLICIES_FILE = BASE_DIR / "policies.txt"
+CHROMA_DIR = BASE_DIR / "chroma_db"
+POLICIES_COLLECTION_NAME = "policies"
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+GEMINI_MODEL_NAME = "gemini-2.5-flash"
 
 
-@st.cache_resource(show_spinner=True)
+@st.cache_resource(show_spinner=False)
 def get_embedding_model() -> SentenceTransformer:
-    """Load and cache the SentenceTransformer model."""
-    return SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+    return SentenceTransformer(MODEL_NAME)
 
 
-def ensure_policies_collection():
-    """Ensure the 'policies' collection exists and is populated with paragraph chunks.
+@st.cache_resource(show_spinner=False)
+def get_chroma_collection():
+    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+    return client.get_or_create_collection(name=POLICIES_COLLECTION_NAME)
 
-    - If the collection does not exist, create it.
-    - If it exists but is empty, load policies.txt, chunk, embed, and populate.
-    """
-    # Get or create the collection
+
+@st.cache_resource(show_spinner=False)
+def get_llm():
+    load_dotenv()
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "GEMINI_API_KEY not set in .env. Please create a .env file with GEMINI_API_KEY=your_key."
+        )
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel(GEMINI_MODEL_NAME)
+
+
+def load_policies_text() -> str:
+    policies_path = BASE_DIR / "policies.txt"
+    if not policies_path.exists():
+        raise FileNotFoundError(f"policies.txt not found at {policies_path}")
+    return policies_path.read_text(encoding="utf-8")
+
+
+def ensure_policies_indexed(collection, model: SentenceTransformer) -> None:
+    # If the collection already has vectors, assume indexing has been done
     try:
-        collection = chroma_client.get_collection(name=COLLECTION_NAME)
+        if collection.count() > 0:
+            return
     except Exception:
-        collection = chroma_client.create_collection(name=COLLECTION_NAME)
+        # If count is not available for some reason, fall back to always indexing
+        pass
 
-    # Check if collection has any documents
-    existing = collection.get()
-    if existing and existing.get("ids"):
-        return collection
-
-    # Otherwise, populate from policies.txt
-    if not POLICIES_FILE.exists():
-        raise FileNotFoundError(f"{POLICIES_FILE} not found in the project directory.")
-
-    with POLICIES_FILE.open("r", encoding="utf-8") as f:
-        policy_text = f.read()
-
-    # Split into paragraphs separated by blank lines
+    policy_text = load_policies_text()
     raw_chunks: List[str] = [p.strip() for p in policy_text.split("\n\n") if p.strip()]
-
-    model = get_embedding_model()
+    if not raw_chunks:
+        return
 
     ids = [str(uuid.uuid4()) for _ in raw_chunks]
     embeddings = model.encode(raw_chunks).tolist()
+
+    metadatas = [{"source": "policies.txt", "type": "paragraph"} for _ in raw_chunks]
 
     collection.add(
         ids=ids,
         documents=raw_chunks,
         embeddings=embeddings,
-        metadatas=[{"source": str(POLICIES_FILE), "type": "paragraph"} for _ in raw_chunks],
+        metadatas=metadatas,
     )
 
-    return collection
 
-
-def retrieve_policies(question: str, k: int = 3):
-    """Retrieve top-k relevant policy paragraphs from Chroma for a question."""
-    model = get_embedding_model()
+def answer_question_with_rag(
+    question: str,
+    k: int,
+    collection,
+    model: SentenceTransformer,
+    llm,
+) -> Tuple[str, List[str]]:
     query_embedding = model.encode([question]).tolist()
 
-    collection = ensure_policies_collection()
     results = collection.query(
         query_embeddings=query_embedding,
         n_results=k,
     )
 
-    return results
+    documents = results.get("documents", [[]])[0]
 
+    context = "\n\n".join(documents)
 
-def generate_answer(question: str, results) -> str:
-    """Use Gemini to generate an answer based on retrieved policy paragraphs."""
-    docs = results.get("documents", [[]])[0]
-
-    if not docs:
-        return "I couldn't find any relevant policy information to answer that question."
-
-    context = "\n\n".join(docs)
-
-    prompt = f"""You are a knowledgeable assistant grounded in the following internal reference text.
+    prompt = f"""You are a helpful assistant for a retail store.
 Use ONLY the information in the CONTEXT section below to answer the QUESTION.
-If the answer is not clearly present in the context, explicitly say that you don't know based on the given information.
-
-When you answer:
-- Be detailed and well-explained, not just a one-line response.
-- Clearly relate your answer back to the context (e.g., by paraphrasing the relevant parts).
-- If there are conditions, exceptions, or edge cases mentioned, include them.
-- Use bullet points or short paragraphs where it improves clarity.
+If the answer is not clearly present in the context, say that you don't know based on the given policies.
 
 CONTEXT:
 {context}
@@ -123,67 +102,48 @@ CONTEXT:
 QUESTION:
 {question}
 
-Provide a thorough, contextualized answer.
+Answer clearly and concisely.
 """
 
     response = llm.generate_content(prompt)
-    return getattr(response, "text", str(response))
+    answer_text = getattr(response, "text", str(response))
+
+    return answer_text, documents
 
 
-# -------------------------
-# Streamlit Chatbot UI
-# -------------------------
-
-st.set_page_config(page_title="Retail Policy RAG Chatbot", page_icon="📄", layout="wide")
-
-st.title("Retail Policy RAG Chatbot")
-st.write(
-    "Chat with a bot that knows the store policies. Your question is embedded, "
-    "relevant policy paragraphs are retrieved via Chroma, and Gemini answers "
-    "using only that context."
-)
-
-# Sidebar: simple settings only (no direct reference to underlying docs)
-with st.sidebar:
-    st.header("Settings")
-    k_default = 3
-    k = st.slider(
-        "Amount of internal context to use (top-k paragraphs):",
-        min_value=1,
-        max_value=5,
-        value=k_default,
+def main() -> None:
+    st.set_page_config(page_title="Policies Q&A (RAG)")
+    st.title("Policies Q&A (RAG over Chroma + Gemini)")
+    st.write(
+        "Ask questions about the store policies. Answers are generated using "
+        "SentenceTransformer embeddings + Chroma + Gemini, grounded in policies.txt."
     )
 
-# Ensure collection is ready (done once per app session)
-with st.spinner("Initializing vector store (Chroma) and embeddings..."):
-    collection = ensure_policies_collection()
-    count = len(collection.get().get("ids", []))
+    with st.sidebar:
+        st.header("Settings")
+        top_k = st.slider("Number of policy chunks to retrieve", min_value=1, max_value=10, value=3)
 
-st.success(f"Chroma collection '{COLLECTION_NAME}' is ready with {count} paragraphs.")
+    with st.spinner("Loading models and preparing vector store..."):
+        model = get_embedding_model()
+        collection = get_chroma_collection()
+        llm = get_llm()
+        ensure_policies_indexed(collection, model)
 
-# Initialize chat history in session state
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
+    question = st.text_input("Your question about the policies:")
 
-# Display chat history
-for msg in st.session_state["messages"]:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-# Chat input
-user_input = st.chat_input("Ask a question about the store policies...")
-
-if user_input:
-    # Store and display user message
-    st.session_state["messages"].append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
-
-    # Retrieve context and generate answer
-    with st.chat_message("assistant"):
+    if st.button("Ask") and question.strip():
         with st.spinner("Thinking..."):
-            results = retrieve_policies(user_input, k=k)
-            answer = generate_answer(user_input, results)
+            answer, docs = answer_question_with_rag(question.strip(), top_k, collection, model, llm)
 
-            st.markdown(answer)
-            st.session_state["messages"].append({"role": "assistant", "content": answer})
+        st.subheader("Answer")
+        st.write(answer)
+
+        with st.expander("Show retrieved policy paragraphs"):
+            for i, doc in enumerate(docs, start=1):
+                st.markdown(f"**Result {i}:**")
+                st.write(doc)
+                st.markdown("---")
+
+
+if __name__ == "__main__":
+    main()
