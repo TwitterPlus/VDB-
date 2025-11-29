@@ -1,0 +1,53 @@
+THE COGNITIVE MIRAGE:  ARTIFICIAL INTELLIGENCE (AI) IS NOT A SUPERIMPOSITION OF HUMAN COGNITIVE ABILITIES
+A CONCEPT PAPER
+BY
+HARRY ATIEKU-BOATENG
+
+Introduction 
+In this write-up, I attempt to provide a clear perspective on AI as a technology that enhances rather than replaces human intelligence. I further attempt to debunk the myth that AI is a direct replica of human cognitive processes, instead portraying AI as reliant on machine learning techniques. AI’s perceived threat to human existence by over-powering our intelligence is primarily founded on a lack of understanding of what AI is and how it works. Though we often describe AI as mimicking human intelligence, it is important to note that AI does not directly replicate or mimic human cognitive abilities. While AI systems can perform tasks like solving problems, language processing, and making decisions that mimic human reasoning, they do so through machine learning capabilities rather than biological cognitive processes. Lately, AI has become the buzzword in a world heavily influenced by digital technology. AI is nothing new; this technology has been used for decades. From the conceptualisation of machine intelligence with the Turing test to the coining of the term AI by John McCarthy, AI development has seen a massive boost in recent years. The application of AI technologies permeates areas such as manufacturing, health, media, and education. AI has proven to have great prospects despite the worries and concerns which are genuine. Among these concerns is the misconception that AI will supersede human intelligence. First, understanding AI requires demystifying the myth that “AI is a superimposition of human cognitive abilities.” Coming to terms with this fact begins with understanding the concept of intelligence and the rationale behind the reference point of intelligence.
+
+ 
+What is AI?
+Before discussing intelligence, we must first understand AI. AI can be described as the field of computer science that seeks to build systems that mimic human intelligence (Russell, 2010). Mimicking human intelligence will mean thinking and acting rationally, which are components of human intelligence that also expose AI’s limitations to some extent.
+
+
+What is Intelligence? 
+To grasp the concept of intelligence, one must delve into the philosophy of intelligence, a complex and multifaceted topic. This exploration involves understanding how intelligence can be defined and measured and its implications for understanding the mind, consciousness, and the nature of reality. Researchers have approached this topic from different perspectives depending on the field of study. For AI researchers, the computational theory of mind, the emerging view of intelligence theory, and the theories of embodied and enactive cognition are the most favoured in developing AI systems. The Computational Theory of Mind suggests that intelligence can be comprehended through computational processes (Chiao, 2020). This theory asserts that mental states are computational states and that algorithms can simulate thought processes. On the other hand, the Emergent View of Intelligence theory highlights the emergence of intelligence from complex systems, emphasising that intelligence arises from interactions within these systems (Legg & Hutter, 2007). The Embodied/Enactive cognition theories emphasise the role of the body and the environment in shaping cognitive processes and intelligence, suggesting that intelligence is intricately linked to bodily experiences and interactions with the environment, providing a holistic view of intelligence (Manzotti, 2019).
+The contrasting views of these approaches to intelligence tend to complement each other in developing AI systems by providing insights into the different aspects of AI design and implementation. The table below shows the various real-world cases of AI developments as informed by the theories. 
+
+
+
+Theory
+Real-World Case Scenario
+Computational Theory of Mind
+Development of chess-playing AI systems like Deep Blue and AlphaZero. These systems use computational algorithms and search techniques to evaluate positions and generate moves, and they have succeeded in beating human grandmasters through brute-force computation and efficient pruning of the search space.
+
+
+Emergent View of Intelligence Theory
+Training large language models like GPT-3,3.5, 4.0 using self-supervised learning on vast amounts of textual data. The intelligence of these models emerges from the complex interactions and patterns within the neural network architectures, without explicit programming for specific tasks. Their capabilities arise from the emergent properties of the system.
+
+
+Embodied/Enactive Cognition Theories
+Development of robots and embodied AI agents that can navigate and interact with the physical world through sensorimotor coordination. For example, Boston Dynamics' robots like Atlas and Spot, can walk, climb stairs, and perform tasks by actively perceiving and responding to their environment through their embodied sensory and motor systems.
+
+
+Why is the human the focal point of intelligence?
+Why do we define AI as mimicking human intelligence and not any other species? It is important to say that the definition of AI as mimicking human intelligence has its historical and practical considerations. Some studies have shown significant levels of intelligence in some animal species, like corvids, farm animals, elephants and marine species, which exceed expectations (Bauer et al., 2020; Emery & Clayton, 2004; Nawroth, 2017; Nawroth et al., 2019; Plotnik et al., 2010). Notwithstanding, the human being remains the only kind to have explored every habitat of other species. He remains the only species whose intelligence is not limited practically. This further highlights human’s unique cognitive abilities and adaptability compared to other species. Another reason to attribute the reference point of intelligence to humans rather than any other species is that human intelligence is the most advanced and complex form of intelligence known (Landgrebe & Smith, 2021). Benchmarking AI systems against human capabilities provides a clearer reference point for AI researchers and developers to evaluate AI capabilities (Signorelli & Arsiwalla, 2019).
+
+ 
+Conclusion 
+AI is a technological marvel, one that might beat your imagination. However, we need to understand that this technological marvel has been made possible by the application of human intelligence. Thus, AI, while powerful, should be viewed as a tool that complements and enhances human intelligence rather than a direct replacement. The collaborative potential of AI and human intelligence holds immense promise for addressing complex challenges and driving innovation in various domains.
+
+
+References 
+Bauer, G. B., Cook, P. F., & Harley, H. E. (2020). The Relevance of Ecological Transitions to Intelligence in Marine Mammals. Frontiers in Psychology. https://doi.org/10.3389/fpsyg.2020.02053
+Chiao, J. Y. (2020). Computational Theory of Mind. https://doi.org/10.4324/9780429327674-10
+Emery, N. J., & Clayton, N. S. (2004). The Mentality of Crows: Convergent Evolution of Intelligence in Corvids and Apes. Science. https://doi.org/10.1126/science.1098410
+Landgrebe, J., & Smith, B. (2021). An Argument for the Impossibility of Machine Intelligence. https://doi.org/10.48550/arxiv.2111.07765
+Legg, S., & Hutter, M. (2007). Universal Intelligence: A Definition of Machine Intelligence. Minds and Machines. https://doi.org/10.1007/s11023-007-9079-x
+Manzotti, R. (2019). Embodied AI Beyond Embodied Cognition and Enactivism. Philosophies. https://doi.org/10.3390/philosophies4030039
+Nawroth, C. (2017). Invited Review: Socio-Cognitive Capacities of Goats and Their Impact on Human–animal Interactions. Small Ruminant Research. https://doi.org/10.1016/j.smallrumres.2017.03.005
+Nawroth, C., Langbein, J., Coulon, M., Gabor, V., Oesterwind, S., Benz-Schwarzburg, J., & Borell, E. von. (2019). Farm Animal Cognition—Linking Behavior, Welfare and Ethics. Frontiers in Veterinary Science. https://doi.org/10.3389/fvets.2019.00024
+Plotnik, J. M., Waal, F. B. M. de, Moore, D. E., & Reiss, D. (2010). Self?recognition in the Asian Elephant and Future Directions for Cognitive Research with Elephants in Zoological Settings. Zoo Biology. https://doi.org/10.1002/zoo.20257
+Russell, S. J. (2010). Artificial intelligence a modern approach. Pearson Education, Inc.
+Signorelli, C. M., & Arsiwalla, X. D. (2019). Moral Dilemmas for Artificial Intelligence: A Position Paper on an Application of Compositional Quantum Cognition. https://doi.org/10.1007/978-3-030-35895-2_9

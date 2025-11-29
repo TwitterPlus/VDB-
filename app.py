@@ -12,7 +12,7 @@ import streamlit as st
 
 BASE_DIR = Path(__file__).resolve().parent
 CHROMA_DIR = BASE_DIR / "chroma_db"
-POLICIES_COLLECTION_NAME = "policies"
+NOTE_COLLECTION_NAME = "notes"
 MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 GEMINI_MODEL_NAME = "gemini-2.5-flash"
 
@@ -25,7 +25,7 @@ def get_embedding_model() -> SentenceTransformer:
 @st.cache_resource(show_spinner=False)
 def get_chroma_collection():
     client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    return client.get_or_create_collection(name=POLICIES_COLLECTION_NAME)
+    return client.get_or_create_collection(name=NOTE_COLLECTION_NAME)
 
 
 @st.cache_resource(show_spinner=False)
@@ -40,14 +40,14 @@ def get_llm():
     return genai.GenerativeModel(GEMINI_MODEL_NAME)
 
 
-def load_policies_text() -> str:
-    policies_path = BASE_DIR / "policies.txt"
-    if not policies_path.exists():
-        raise FileNotFoundError(f"policies.txt not found at {policies_path}")
-    return policies_path.read_text(encoding="utf-8")
+def load_notes_text() -> str:
+    notes_path = BASE_DIR / "Demystifying The Myth.txt"
+    if not notes_path.exists():
+        raise FileNotFoundError(f"Demystifying The Myth.txt not found at {notes_path}")
+    return notes_path.read_text(encoding="utf-8")
 
 
-def ensure_policies_indexed(collection, model: SentenceTransformer) -> None:
+def ensure_notes_indexed(collection, model: SentenceTransformer) -> None:
     # If the collection already has vectors, assume indexing has been done
     try:
         if collection.count() > 0:
@@ -56,15 +56,15 @@ def ensure_policies_indexed(collection, model: SentenceTransformer) -> None:
         # If count is not available for some reason, fall back to always indexing
         pass
 
-    policy_text = load_policies_text()
-    raw_chunks: List[str] = [p.strip() for p in policy_text.split("\n\n") if p.strip()]
+    notes_text = load_notes_text()
+    raw_chunks: List[str] = [p.strip() for p in notes_text.split("\n\n") if p.strip()]
     if not raw_chunks:
         return
 
     ids = [str(uuid.uuid4()) for _ in raw_chunks]
     embeddings = model.encode(raw_chunks).tolist()
 
-    metadatas = [{"source": "policies.txt", "type": "paragraph"} for _ in raw_chunks]
+    metadatas = [{"source": "Demystifying The Myth.txt", "type": "paragraph"} for _ in raw_chunks]
 
     collection.add(
         ids=ids,
@@ -92,9 +92,9 @@ def answer_question_with_rag(
 
     context = "\n\n".join(documents)
 
-    prompt = f"""You are a helpful assistant for a retail store.
+    prompt = f"""You are a helpful teaching assistant for a class.
 Use ONLY the information in the CONTEXT section below to answer the QUESTION.
-If the answer is not clearly present in the context, say that you don't know based on the given policies.
+If the answer is not clearly present in the context, say that you don't know based on the given notes.
 
 CONTEXT:
 {context}
@@ -112,24 +112,24 @@ Answer clearly and concisely.
 
 
 def main() -> None:
-    st.set_page_config(page_title="Policies Q&A (RAG)")
-    st.title("Policies Q&A (RAG over Chroma + Gemini)")
+    st.set_page_config(page_title="AI Q&A (RAG)")
+    st.title("AI Q&A (RAG over Chroma + Gemini)")
     st.write(
-        "Ask questions about the store policies. Answers are generated using "
-        "SentenceTransformer embeddings + Chroma + Gemini, grounded in policies.txt."
+        "Ask questions about AI. Answers are generated using "
+        "SentenceTransformer embeddings + Chroma + Gemini, grounded in Demystifying The Myth.txt."
     )
 
     with st.sidebar:
         st.header("Settings")
-        top_k = st.slider("Number of policy chunks to retrieve", min_value=1, max_value=10, value=3)
+        top_k = st.slider("Number of notes chunks to retrieve", min_value=1, max_value=10, value=3)
 
     with st.spinner("Loading models and preparing vector store..."):
         model = get_embedding_model()
         collection = get_chroma_collection()
         llm = get_llm()
-        ensure_policies_indexed(collection, model)
+        ensure_notes_indexed(collection, model)
 
-    question = st.text_input("Your question about the policies:")
+    question = st.text_input("Your question about the notes:")
 
     if st.button("Ask") and question.strip():
         with st.spinner("Thinking..."):
@@ -138,7 +138,7 @@ def main() -> None:
         st.subheader("Answer")
         st.write(answer)
 
-        with st.expander("Show retrieved policy paragraphs"):
+        with st.expander("Show retrieved notes paragraphs"):
             for i, doc in enumerate(docs, start=1):
                 st.markdown(f"**Result {i}:**")
                 st.write(doc)
